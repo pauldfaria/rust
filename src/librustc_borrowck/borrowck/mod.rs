@@ -238,6 +238,22 @@ impl<'tcx> Loan<'tcx> {
     pub fn loan_path(&self) -> Rc<LoanPath<'tcx>> {
         self.loan_path.clone()
     }
+
+    pub fn kind(&self) -> ty::BorrowKind {
+        self.kind
+    }
+
+    pub fn span(&self) -> Span {
+        self.span
+    }
+
+    pub fn gen_scope(&self) -> region::CodeExtent {
+        self.gen_scope
+    }
+
+    pub fn kill_scope(&self) -> region::CodeExtent {
+        self.kill_scope
+    }
 }
 
 #[derive(Eq)]
@@ -338,6 +354,15 @@ impl<'a, 'tcx> LoanPath<'tcx> {
             }
             LpDowncast(ref base, _) |
             LpExtend(ref base, ..) => base.kill_scope(bccx),
+        }
+    }
+
+    pub fn belongs_to(&self, node_id: ast::NodeId) -> bool {
+        match self.kind {
+            LpVar(local_id) => local_id == node_id,
+            LpUpvar(upvar_id) => upvar_id.var_id == node_id,
+            LpDowncast(ref base, _) |
+            LpExtend(ref base, ..) => base.belongs_to(node_id)
         }
     }
 
