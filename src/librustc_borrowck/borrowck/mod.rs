@@ -79,6 +79,7 @@ pub fn provide(providers: &mut Providers) {
 
 /// Collection of conclusions determined via borrow checker analyses.
 pub struct AnalysisData<'a, 'tcx: 'a> {
+    pub safe_loans: Vec<SafeLoan>,
     pub all_loans: Vec<Loan<'tcx>>,
     pub loans: DataFlowContext<'a, 'tcx, LoanDataFlowOperator>,
     pub move_data: move_data::FlowedMoveData<'a, 'tcx>,
@@ -126,7 +127,8 @@ fn borrowck<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>, owner_def_id: DefId) {
     let cfg = cfg::CFG::new(bccx.tcx, &body);
     let AnalysisData { all_loans,
                        loans: loan_dfcx,
-                       move_data: flowed_moves } =
+                       move_data: flowed_moves,
+                       .. } =
         build_borrowck_dataflow_data(bccx, &cfg, body_id);
 
     check_loans::check_loans(bccx, &loan_dfcx, &flowed_moves, &all_loans, body);
@@ -145,7 +147,7 @@ fn build_borrowck_dataflow_data<'a, 'tcx>(this: &mut BorrowckCtxt<'a, 'tcx>,
         visitor.visit_body(body);
         visitor.result()
     };
-    let (all_loans, move_data) =
+    let (safe_loans, all_loans, move_data) =
         gather_loans::gather_loans_in_fn(this, body_id);
 
     let mut loan_dfcx =
@@ -170,9 +172,12 @@ fn build_borrowck_dataflow_data<'a, 'tcx>(this: &mut BorrowckCtxt<'a, 'tcx>,
                                                       id_range,
                                                       body);
 
-    AnalysisData { all_loans: all_loans,
-                   loans: loan_dfcx,
-                   move_data:flowed_moves }
+    AnalysisData {
+        safe_loans: safe_loans,
+        all_loans: all_loans,
+        loans: loan_dfcx,
+        move_data:flowed_moves
+    }
 }
 
 /// Accessor for introspective clients inspecting `AnalysisData` and
@@ -210,6 +215,31 @@ pub struct BorrowckCtxt<'a, 'tcx: 'a> {
 
 ///////////////////////////////////////////////////////////////////////////
 // Loans and loan paths
+
+pub struct SafeLoan {
+    kind: ty::BorrowKind,
+    loan_scope: region::CodeExtent,
+    span: Span,
+    cause: euv::LoanCause,
+}
+
+impl SafeLoan {
+    pub fn kind(&self) -> ty::BorrowKind {
+        self.kind
+    }
+
+    pub fn loan_scope(&self) -> region::CodeExtent {
+        self.loan_scope
+    }
+
+    pub fn span(&self) -> Span {
+        self.span
+    }
+
+    pub fn cause(&self) -> euv::LoanCause {
+        self.cause
+    }
+}
 
 /// Record of a loan that was issued.
 pub struct Loan<'tcx> {
