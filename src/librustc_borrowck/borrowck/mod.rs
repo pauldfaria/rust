@@ -79,7 +79,7 @@ pub fn provide(providers: &mut Providers) {
 
 /// Collection of conclusions determined via borrow checker analyses.
 pub struct AnalysisData<'a, 'tcx: 'a> {
-    pub safe_loans: Vec<SafeLoan>,
+    pub safe_loans: Vec<SafeLoan<'tcx>>,
     pub all_loans: Vec<Loan<'tcx>>,
     pub loans: DataFlowContext<'a, 'tcx, LoanDataFlowOperator>,
     pub move_data: move_data::FlowedMoveData<'a, 'tcx>,
@@ -216,19 +216,19 @@ pub struct BorrowckCtxt<'a, 'tcx: 'a> {
 ///////////////////////////////////////////////////////////////////////////
 // Loans and loan paths
 
-pub struct SafeLoan {
+pub struct SafeLoan<'tcx> {
     kind: ty::BorrowKind,
-    loan_scope: region::CodeExtent,
+    loan_scope: region::CodeExtent<'tcx>,
     span: Span,
     cause: euv::LoanCause,
 }
 
-impl SafeLoan {
+impl<'tcx> SafeLoan<'tcx> {
     pub fn kind(&self) -> ty::BorrowKind {
         self.kind
     }
 
-    pub fn loan_scope(&self) -> region::CodeExtent {
+    pub fn loan_scope(&self) -> region::CodeExtent<'tcx> {
         self.loan_scope
     }
 

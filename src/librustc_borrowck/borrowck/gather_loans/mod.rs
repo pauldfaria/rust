@@ -38,7 +38,7 @@ mod move_error;
 
 pub fn gather_loans_in_fn<'a, 'tcx>(bccx: &BorrowckCtxt<'a, 'tcx>,
                                     body: hir::BodyId)
-                                    -> (Vec<SafeLoan>, Vec<Loan<'tcx>>,
+                                    -> (Vec<SafeLoan<'tcx>>, Vec<Loan<'tcx>>,
                                         move_data::MoveData<'tcx>) {
     let infcx = bccx.tcx.borrowck_fake_infer_ctxt(body);
     let mut glcx = GatherLoanCtxt {
@@ -64,7 +64,7 @@ struct GatherLoanCtxt<'a, 'tcx: 'a> {
     infcx: &'a InferCtxt<'a, 'tcx, 'tcx>,
     move_data: move_data::MoveData<'tcx>,
     move_error_collector: move_error::MoveErrorCollector<'tcx>,
-    safe_loans: Vec<SafeLoan>,
+    safe_loans: Vec<SafeLoan<'tcx>>,
     all_loans: Vec<Loan<'tcx>>,
     /// `item_ub` is used as an upper-bound on the lifetime whenever we
     /// ask for the scope of an expression categorized as an upvar.
@@ -350,7 +350,15 @@ impl<'a, 'tcx> GatherLoanCtxt<'a, 'tcx> {
                 let loan_scope = match *loan_region {
                     ty::ReScope(scope) => scope,
 
-                    ty::ReFree(ref fr) => fr.scope,
+                    ty::ReFree(ref fr) => match fr.scope {
+                        Some(scope) => scope,
+                        None => {
+                            span_bug!(
+                                cmt.span,
+                                "invalid borrow lifetime: {:?}",
+                                loan_region);
+                        }
+                    },
 
                     ty::ReStatic => self.item_ub,
 
@@ -368,7 +376,7 @@ impl<'a, 'tcx> GatherLoanCtxt<'a, 'tcx> {
                 };
                 debug!("loan_scope = {:?}", loan_scope);
 
-                let borrow_scope = self.tcx().region_maps.node_extent(borrow_id);
+                let borrow_scope = self.tcx().node_extent(borrow_id);
                 let loan_scope = self.compute_gen_scope(borrow_scope, loan_scope);
 
                 let safe_loan = SafeLoan {
