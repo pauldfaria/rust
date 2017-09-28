@@ -65,31 +65,7 @@ impl SerializedDepGraph {
     }
 }
 
-/// The index of a DepNode in the SerializedDepGraph::nodes array.
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Ord, PartialOrd, Debug,
-         RustcEncodable, RustcDecodable)]
-pub struct DepNodeIndex(pub u32);
-
-impl DepNodeIndex {
-    #[inline]
-    pub fn new(idx: usize) -> DepNodeIndex {
-        assert!(idx <= ::std::u32::MAX as usize);
-        DepNodeIndex(idx as u32)
-    }
-}
-
-impl Idx for DepNodeIndex {
-    #[inline]
-    fn new(idx: usize) -> Self {
-        assert!(idx <= ::std::u32::MAX as usize);
-        DepNodeIndex(idx as u32)
-    }
-
-    #[inline]
-    fn index(self) -> usize {
-        self.0 as usize
-    }
-}
+newtype_index!(DepNodeIndex);
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct SerializedWorkProduct {

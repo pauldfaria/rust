@@ -15,12 +15,14 @@
       html_root_url = "https://doc.rust-lang.org/nightly/")]
 #![deny(warnings)]
 
+#![feature(const_fn)]
+#![feature(core_intrinsics)]
 #![feature(rand)]
 #![feature(conservative_impl_trait)]
 
 extern crate graphviz;
 #[macro_use] extern crate rustc;
-extern crate rustc_data_structures;
+#[macro_use] extern crate rustc_data_structures;
 extern crate serialize as rustc_serialize;
 
 #[macro_use] extern crate log;
