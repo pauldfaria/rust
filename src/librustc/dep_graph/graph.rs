@@ -367,7 +367,7 @@ impl DepGraph {
         for (current_dep_node_index, edges) in current_dep_graph.edges.iter_enumerated() {
             let start = edge_list_data.len() as u32;
             // This should really just be a memcpy :/
-            edge_list_data.extend(edges.iter().map(|i| SerializedDepNodeIndex(i.index)));
+            edge_list_data.extend(edges.iter().map(|i| SerializedDepNodeIndex(i.index() as u32)));
             let end = edge_list_data.len() as u32;
 
             debug_assert_eq!(current_dep_node_index.index(), edge_list_indices.len());
@@ -563,34 +563,10 @@ impl CurrentDepGraph {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub(super) struct DepNodeIndexNew {
-    index: u32,
-}
-
-impl Idx for DepNodeIndexNew {
-    fn new(idx: usize) -> Self {
-        DepNodeIndexNew::new(idx)
-    }
-    fn index(self) -> usize {
-        self.index()
-    }
-}
+newtype_index!(DepNodeIndexNew);
 
 impl DepNodeIndexNew {
-
-    const INVALID: DepNodeIndexNew = DepNodeIndexNew {
-        index: ::std::u32::MAX,
-    };
-
-    fn new(v: usize) -> DepNodeIndexNew {
-        assert!((v & 0xFFFF_FFFF) == v);
-        DepNodeIndexNew { index: v as u32 }
-    }
-
-    fn index(self) -> usize {
-        self.index as usize
-    }
+    const INVALID: DepNodeIndexNew = DepNodeIndexNew::const_new(::std::u32::MAX);
 }
 
 #[derive(Clone, Debug, PartialEq)]
