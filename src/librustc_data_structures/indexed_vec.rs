@@ -40,7 +40,7 @@ impl Idx for u32 {
 
 #[macro_export]
 macro_rules! newtype_index {
-    ($name:ident, $debug_name:expr) => (
+    ($name:ident) => (
         #[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord,
          RustcEncodable, RustcDecodable)]
         pub struct $name(u32);
@@ -57,7 +57,8 @@ macro_rules! newtype_index {
 
         impl ::std::fmt::Debug for $name {
             fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                write!(fmt, "{}{}", $debug_name, self.0)
+                let debug_name = unsafe { ::std::intrinsics::type_name::<$name>() };
+                write!(fmt, "{}{}", debug_name, self.0)
             }
         }
     )
