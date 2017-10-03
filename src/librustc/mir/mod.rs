@@ -402,7 +402,7 @@ pub enum BorrowKind {
 ///////////////////////////////////////////////////////////////////////////
 // Variables and temps
 
-newtype_index!(Local);
+newtype_index!(Local, "_");
 
 pub const RETURN_POINTER: Local = Local(0);
 
@@ -538,7 +538,7 @@ pub struct UpvarDecl {
 ///////////////////////////////////////////////////////////////////////////
 // BasicBlock
 
-newtype_index!(BasicBlock);
+newtype_index!(BasicBlock, "bb");
 
 ///////////////////////////////////////////////////////////////////////////
 // BasicBlockData and Terminator
@@ -1118,7 +1118,7 @@ pub type LvalueProjection<'tcx> = Projection<'tcx, Lvalue<'tcx>, Local, Ty<'tcx>
 /// and the index is a local.
 pub type LvalueElem<'tcx> = ProjectionElem<'tcx, Local, Ty<'tcx>>;
 
-newtype_index!(Field);
+newtype_index!(Field, "field");
 
 impl<'tcx> Lvalue<'tcx> {
     pub fn field(self, f: Field, ty: Ty<'tcx>) -> Lvalue<'tcx> {
@@ -1183,7 +1183,7 @@ impl<'tcx> Debug for Lvalue<'tcx> {
 ///////////////////////////////////////////////////////////////////////////
 // Scopes
 
-newtype_index!(VisibilityScope);
+newtype_index!(VisibilityScope, "scope");
 pub const ARGUMENT_VISIBILITY_SCOPE : VisibilityScope = VisibilityScope(0);
 
 #[derive(Clone, Debug, RustcEncodable, RustcDecodable)]
@@ -1509,7 +1509,7 @@ pub struct Constant<'tcx> {
     pub literal: Literal<'tcx>,
 }
 
-newtype_index!(Promoted);
+newtype_index!(Promoted, "promoted");
 
 #[derive(Clone, PartialEq, Eq, Hash, RustcEncodable, RustcDecodable)]
 pub enum Literal<'tcx> {
